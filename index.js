@@ -9,6 +9,9 @@ app.use(formidable());
 const userRoutes = require('./routes/user');
 app.use(userRoutes);
 
+const roomRoutes = require('./routes/room');
+app.use(roomRoutes);
+
 mongoose.connect("mongodb://localhost:27017/airbnb", {
     useNewUrlParser : true, useUnifiedTopology : true, useCreateIndex : true
 });
