@@ -18,10 +18,12 @@ const emailToCheck = await User.findOne({ email : email }) ;
     res.status(400).json({message : `${email} has already an account`});}
     else { 
     const newUser = new User ({
-     email : email,
+    email : email,
+    account : {
      username : username,
      description : description,
-     name : name,
+     name : name
+    },
      token : token,
      salt : salt,
      hash : hash,

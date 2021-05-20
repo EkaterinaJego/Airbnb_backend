@@ -10,12 +10,14 @@ password : {
     type : String,
     min : [10, "The password is too short, the minimal size is 10 caracters"]
 },
-username : {
+account : { 
+    username : {
         required : true,
         type : String
-    },
-name : String,
-description : String,
+    },  
+    name : String,
+    description : String,
+}, 
 token : String,
 hash : String,
 salt : String
