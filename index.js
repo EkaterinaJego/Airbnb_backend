@@ -11,7 +11,7 @@ app.use(userRoutes);
 const roomRoutes = require('./routes/room');
 app.use(roomRoutes);
 
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect("mongodb://localhost:27017/airbnb", {
     useNewUrlParser : true, useUnifiedTopology : true, useCreateIndex : true
 });
 
@@ -19,6 +19,6 @@ app.all("*", (req,res) => {
     res.status(400).json('Impossible de trouver une page')
 })
 
-app.listen(process.env.PORT, () => {
+app.listen(3000, () => {
     console.log("Server has started")
 }); 
