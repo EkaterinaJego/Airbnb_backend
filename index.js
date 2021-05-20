@@ -1,6 +1,7 @@
 const express = require('express');
 const formidable = require('express-formidable');
 const mongoose = require("mongoose");
+require('dotenv').config();
 
 const app = express();
 app.use(formidable());
