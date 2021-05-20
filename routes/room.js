@@ -23,12 +23,12 @@ const {title, description, price, location } = req.fields;
 
     // Ajouter une nouvelle clé "rooms" dans le profil de l'user :
 
-    // let tab = [];
-    // tab.push(newRoom.id);
-    // const rooms = {rooms : tab}
-    // const user = await User.findById(req.user);
-    // user.rooms = rooms;
-    // await user.save();
+    let tab = [];
+    tab.push(newRoom.id);
+    const rooms = {rooms : tab}
+    const user = await User.findById(req.user);
+    user.rooms = rooms;
+    await user.save();
    
    res.status(200).json({id : newRoom.id, title : newRoom.title, description : newRoom.description, price : newRoom.price, location : locationTab, user : req.user.id, photos : []});
 } catch (error) {
