@@ -133,4 +133,50 @@ catch (error) {
 }
 })
 
+// 6ème route pour filter les annonces :
+
+router.post("/rooms", async (req, res) => {
+
+const {title, priceMin, priceMax } = req.query;
+ const filters = {};
+    try {
+    if (title) {
+    filters.title = new RegExp(title, "i")};
+
+    if (priceMin) {
+    filters.price = {$gte : Number(priceMin)}
+        };
+    if (priceMax) {
+    if (filters.price) { 
+        filters.price.$lt = Number(priceMax) }
+    else { 
+    filters.price = {$lt : Number(priceMax)};
+         }
+    };
+    const sort = {};
+    if (req.query.sort === "price-asc") {
+    sort.price = 1; 
+    } ;
+    if (req.query.sort === "price-desc") {
+    sort.price = -1;
+    };
+
+    let page = Number(req.query.page);
+    let limit = Number(req.query.limit);
+
+    if (page < 1) {
+    return page = 1;
+    } else { page  = page }
+
+    const count = await Room.countDocuments(filters);  
+    const rooms = await Room.find(filters).sort(sort).skip((page - 1)*limit).limit(limit);
+    res.status(200).json({ count : count, rooms : rooms});
+    
+    } catch (error) {
+    res.status(400).json({message : error.message})     
+        }
+    })
+    
+    
+
 module.exports = router; 

@@ -126,5 +126,89 @@ if (req.params.id) {
     }}
     else { res.status(400).json({message : "Missing some parameters"})}});
 
+// 5ème route pour rechercher l'utilisateur par id et retourner les informations non-sensibles : 
+
+router.get("/users/:id", async (req,res) => {
+if (req.params.id) { 
+        try {
+            const user = await User.findById(req.params.id);
+
+        if (user) {
+            
+            res.status(200).json({id : user.id, account : user.account, rooms : user.rooms})
+        }
+        else   {
+            res.status(401).json("User wasn't found");
+        }   
+        } catch (error) { res.status(400).json({message : error.message}) 
+    }
+} else {res.status("No id received")}
+})
+    
+// 6ème route pour lire les annonces de l'utilisateur : 
+
+router.get("/user/rooms/:id", async (req,res) => {
+if (req.params.id) {
+    try {
+    const user = await User.findById(req.params.id);
+    if (user) {
+    const rooms = user.rooms;
+    if (rooms.length > 0) {
+    let tab = [];
+    for (let i = 0; i < rooms.length; i++ ) {
+    const room = await Room.findById(rooms[i]);
+    tab.push(room);
+      } res.status(200).json(tab); 
+    }
+    else {res.status(400).json("This user has no rooms registered")}
+}
+    else { res.status(400).json("User wasn't found")
+    }} catch (error) {
+    res.status(400).json({message : error.message})     
+    } }
+    else {res.status("No id received")}
+})
+
+// 7ème route pour modifier l'utilisateur (sauf avatar) :
+
+router.post ("/user/update", isAuthenticated, async (req,res) => {
+const {username, name, email, description} = req.fields;
+if (username || name || email || description) {
+try {
+    const user = req.user; 
+    if (username) {
+        const userUsername = await User.findOne({username : username});
+        if (userUsername) {
+        res.json("This username is already registered in the DB")
+         } else {
+        user.username = username;
+        }}
+
+    if (email) {
+        const userEmail = await User.findOne({email : userEmail});
+        if (userEmail) {
+            res.json("This email is already registered in the DB")
+        } else {
+            user.email = email;
+        }}
+
+    if (description) {
+        user.description = description
+        };
+    if (name) {
+        user.name = name
+        };
+ await user.save();
+ res.status(200).json({user});
+
+} catch (error) {
+  res.status(400).json({message : error.message})  
+}
+
+} 
+else { res.json("No changes to the profile")}
+})
+
+
 module.exports = router;
 
