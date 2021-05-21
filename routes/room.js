@@ -3,6 +3,9 @@ const router = express.Router();
 const Room = require('../models/Room');
 const User = require('../models/User');
 const isAuthenticated = require('../middlewares/isAuthenticated');
+const { findById } = require('../models/User');
+
+// 1ère route pour publier l'annonce :
 
 router.post("/room/publish", isAuthenticated, async (req, res) => { 
     
@@ -17,7 +20,7 @@ const {title, description, price, location } = req.fields;
     price : price,
     location : locationTab,
     user : req.user,
-    photos : []
+   
         });
     await newRoom.save();
 
@@ -28,7 +31,7 @@ const {title, description, price, location } = req.fields;
     tab.push(newRoom.id);
     await user.save();
    
-   res.status(200).json({id : newRoom.id, title : newRoom.title, description : newRoom.description, price : newRoom.price, location : locationTab, user : req.user.id, photos : []});
+   res.status(200).json({id : newRoom.id, title : newRoom.title, description : newRoom.description, price : newRoom.price, location : locationTab, user : req.user.id });
 } catch (error) {
     res.status(400).json({message : error.message})
     }
@@ -36,8 +39,10 @@ const {title, description, price, location } = req.fields;
 else { res.status(400).json({message : "Missing parameters"})
 }})
 
-router.get("/rooms", async (req, res) => { // route pour trouver toutes les offres dans la bdd
- try {
+// 2ème route pour consulter toutes les offres dans les bdd Rooms :
+
+router.get("/rooms", async (req, res) => { 
+try {
 const roomsToCheck = await Room.find({}, {description : false});
 console.log(roomsToCheck);
 res.status(200).json({roomsToCheck});
@@ -47,21 +52,39 @@ res.status(200).json({roomsToCheck});
  }
 })
 
+// 3ème route pour trouver une route particulière par son ID :
+
 router.get("/room/:id", async (req, res) => {
+
 try {
-const roomToFind = await Room.findById(req.params.id).populate("user user.account");  // Populate ne fonctionne pas 
-res.status(200).json({photos : roomToFind.photos, location : roomToFind.location, id : roomToFind.id, title : roomToFind.title, description : roomToFind.description, price : roomToFind.price, user : roomToFind.user.account});
+const roomToFind = await Room.findById(req.params.id);
+if (roomToFind) { 
+const userObj = {};
+const user = await User.findById(roomToFind.user);
+userObj.username = user.account.username;
+userObj.description = user.account.description;
+userObj.name = user.account.name;
+userObj.avatar = user.account.avatar;
+
+res.status(200).json({photos : roomToFind.photos, location : roomToFind.location, id : roomToFind.id, title : roomToFind.title, description : roomToFind.description, price : roomToFind.price, user : userObj, });
+
+} else {res.json({message : "No room found"})}
         
 } catch (error) {
-    res.status(400).json({message : error.message})      
+res.status(400).json({message : error.message})      
     }
 })
 
+// 4ème route pour modifier l'annonce :
+
 router.put("/room/update/:id", isAuthenticated, async (req, res) => {
+
 const {title, description, price, location } = req.fields;
+
 if (title || description || price || location) {
     try {
     const roomToFind = await Room.findById(req.params.id);
+    if (roomToFind) {
     if (title) {
      roomToFind.title = title
     };
@@ -74,16 +97,18 @@ if (title || description || price || location) {
     if (location) {
         roomToFind.location = location
     };
-await roomToFind.save();
+    await roomToFind.save();
 res.status(200).json({message : roomToFind});
-} 
+}  else {res.status(400).json({message : "Room not found"})}
+}
 catch (error) {
 res.status(400).json({message : error.message})     
 }}
 else { 
-    "There is no modification"
+res.json("Missing parameters to modify")
 }})
 
+// 5ème route pour effacer l'annonce de la BDD : 
 
 router.delete("/room/delete/:id", isAuthenticated, async (req,res) => {
 try {
