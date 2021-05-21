@@ -16,9 +16,14 @@ account : {
         type : String
     },  
     name : String,
-    description : String,
+    description : String,    
 }, 
+avatar : { type: mongoose.Schema.Types.Mixed, default: {} },
 token : String,
+rooms : [{
+    type : mongoose.Schema.Types.ObjectId,
+    ref : "Room"
+}],
 hash : String,
 salt : String
 })

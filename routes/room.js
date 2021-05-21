@@ -23,11 +23,9 @@ const {title, description, price, location } = req.fields;
 
     // Ajouter une nouvelle clé "rooms" dans le profil de l'user :
 
-    let tab = [];
+    const user = await User.findById(req.user.id);
+    let tab = user.rooms;
     tab.push(newRoom.id);
-    const rooms = {rooms : tab}
-    const user = await User.findById(req.user);
-    user.rooms = rooms;
     await user.save();
    
    res.status(200).json({id : newRoom.id, title : newRoom.title, description : newRoom.description, price : newRoom.price, location : locationTab, user : req.user.id, photos : []});
@@ -89,10 +87,22 @@ else {
 
 router.delete("/room/delete/:id", isAuthenticated, async (req,res) => {
 try {
-const roomToDelete = await Room.findByIdAndDelete(req.params.id);
+const roomToDelete = await Room.findById(req.params.id);
+if (roomToDelete) {
+const user = await User.findById(req.user.id);
+let tab = user.rooms; 
+for (let i = 0; i < tab.length; i++) {
+    if (String(tab[i]) === req.params.id) {
+        tab.splice(tab.indexOf(req.params.id), 1);
+        await user.save();  
+
+await Room.findByIdAndDelete(req.params.id);
+
+}}
 res.status(200).json({message : "Room was successfully deleted"})
 }
-// ajouter la suppression d'une clé dans la bdd de l'user
+else { res.json({message : "Room wasn't found"})}
+}
 catch (error) {
    res.status(400).json({message : error.message}) 
 }

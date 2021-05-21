@@ -7,7 +7,7 @@ const Room = mongoose.model("Room", {
     description : String,
     price : Number, 
     location : [Number],
-     user : {
+    user : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "User"
     }, 
