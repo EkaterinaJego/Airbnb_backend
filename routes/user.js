@@ -169,7 +169,7 @@ if (req.params.id) {
     else {res.status("No id received")}
 })
 
-// 7ème route pour modifier l'utilisateur (sauf avatar) :
+// 7ème route pour modifier l'utilisateur (sauf avatar) : A TESTER !!!
 
 router.post ("/user/update", isAuthenticated, async (req,res) => {
 const {username, name, email, description} = req.fields;

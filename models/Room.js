@@ -11,7 +11,10 @@ const Room = mongoose.model("Room", {
         type : mongoose.Schema.Types.ObjectId,
         ref : "User"
     }, 
-    photos : [Object]
+    photos : [{
+        url : String,
+        public_id : String
+    }]
 })
 
 

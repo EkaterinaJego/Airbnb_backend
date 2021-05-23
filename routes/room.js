@@ -4,6 +4,7 @@ const Room = require('../models/Room');
 const User = require('../models/User');
 const isAuthenticated = require('../middlewares/isAuthenticated');
 const { findById } = require('../models/User');
+const cloudinary = require('cloudinary').v2;
 
 // 1ère route pour publier l'annonce :
 
@@ -177,6 +178,33 @@ const {title, priceMin, priceMax } = req.query;
         }
     })
     
+
+    // 7ème route pour ajouter plusieurs images à l'annonce :
+
+router.put("/room/upload_picture/:id", isAuthenticated, async (req,res) => {
+if (req.params.id) { 
+    try {
+const room = await Room.findById(req.params.id);
+const fileKeys = Object.keys(req.files);
+if (fileKeys.length > 0) {
+const tab = [];
+for (let i = 0; i < fileKeys.length; i++) {
+const result = await cloudinary.uploader.upload(req.files[fileKeys[i]].path, {folder : `/airbnb/offer/${room.id}`})
+tab.push({
+    url : result.secure_url, 
+    public_id : result.public_id
+});
+}
+room.photos = tab;
+await room.save();
+res.json(room.photos)
+} else { res.json("No files to upload")}   
+} catch(error) {
+    res.json({message : error.message})
+}
+} else { 
+res.json("Id missing")}
     
+})
 
 module.exports = router; 
