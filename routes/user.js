@@ -91,6 +91,7 @@ router.put("/user/upload_picture", isAuthenticated, async (req, res) => {
       if (req.files.photo) {
         const user = req.user;
 
+        // There is no avatar :
         if (user.account.photo === null) {
           await cloudinary.uploader.upload(
             req.files.photo.path,
@@ -267,7 +268,7 @@ router.get("/user/rooms/:id", async (req, res) => {
 
 // 7ème route pour modifier l'utilisateur (sauf avatar) : A TESTER !!!
 
-router.post("/user/update", isAuthenticated, async (req, res) => {
+router.put("/user/update", isAuthenticated, async (req, res) => {
   const { username, name, email, description } = req.fields;
   if (username || name || email || description) {
     try {
@@ -277,7 +278,7 @@ router.post("/user/update", isAuthenticated, async (req, res) => {
         if (userUsername) {
           res.json("This username is already registered in the DB");
         } else {
-          user.username = username;
+          userUsername.username = username;
         }
       }
 
@@ -286,15 +287,19 @@ router.post("/user/update", isAuthenticated, async (req, res) => {
         if (userEmail) {
           res.json("This email is already registered in the DB");
         } else {
-          user.email = email;
+          userEmail.email = email;
         }
       }
 
       if (description) {
-        user.description = description;
+        const userDescription = await User.findOne({
+          description: userDescription,
+        });
+        userDescription.description = description;
       }
       if (name) {
-        user.name = name;
+        const userName = await User.findOne({ name: userName });
+        userName = name;
       }
       await user.save();
       res.status(200).json({ user });
