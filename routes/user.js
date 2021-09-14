@@ -13,7 +13,7 @@ const isAuthenticated = require("../middlewares/isAuthenticated");
 
 router.post("/user/signup", async (req, res) => {
   try {
-    const { email, username, name, description } = req.fields;
+    const { email, username, name, description, password } = req.fields;
     const userEmail = await User.findOne({ email: email });
     const userUsername = await User.findOne({ username: username });
     if (userEmail) {
@@ -21,7 +21,7 @@ router.post("/user/signup", async (req, res) => {
     } else if (userUsername) {
       res.json("This username is already used");
     } else {
-      if (email && username && name && description) {
+      if (email && username && password && description) {
         const salt = uid2(16);
         const hash = SHA256(req.fields.password + salt).toString(encBase64);
         const token = uid2(16);
@@ -186,14 +186,12 @@ router.get("/users/:id", isAuthenticated, async (req, res) => {
       const user = await User.findById(req.params.id);
 
       if (user) {
-        res
-          .status(200)
-          .json({
-            id: user.id,
-            photo: user.account.photo,
-            account: user.account,
-            rooms: user.rooms,
-          });
+        res.status(200).json({
+          id: user.id,
+          photo: user.account.photo,
+          account: user.account,
+          rooms: user.rooms,
+        });
       } else {
         res.status(401).json("User wasn't found");
       }
