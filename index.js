@@ -21,13 +21,13 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/airbnb", {
 });
 
 cloudinary.config({
-  //   cloud_name: process.env.CLOUDINARY_NAME,
-  //   api_key: process.env.CLOUDINARY_API_KEY,
-  api_key: "261736918651169",
-  api_secret: "IfiCJGwqu4qo-2we6C1S0pG_QnI",
-  cloud_name: "dgwleomuz",
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  // api_key: "261736918651169",
+  // api_secret: "IfiCJGwqu4qo-2we6C1S0pG_QnI",
+  // cloud_name: "dgwleomuz",
 
-  //   api_secret: process.env.CLOUDINARY_API_SECRET,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 app.get("/", function (req, res) {
   res.send("Welcome to the Airbnb back_end API.");
