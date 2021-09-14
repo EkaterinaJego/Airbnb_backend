@@ -37,7 +37,6 @@ app.all("*", (req, res) => {
   res.status(400).json("Impossible de trouver cette page");
 });
 
-// app.listen(process.env.PORT, () => {
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log("Server started");
 });
