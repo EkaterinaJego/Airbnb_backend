@@ -85,60 +85,92 @@ router.post("/user/login", async (req, res) => {
 
 // 3ème route pour uploader l'avatar de l'utilisateur :
 
-router.put("/user/upload_avatar/:id", isAuthenticated, async (req, res) => {
-  if (req.files.picture) {
+router.put("/user/upload_picture", isAuthenticated, async (req, res) => {
+  async (req, res) => {
     try {
-      const userAvatar = await User.findById(req.params.id);
-      if (userAvatar) {
-        if (!userAvatar.account.avatar) {
-          const newAv = {};
-          const result = await cloudinary.uploader.upload(
-            req.files.picture.path,
-            { folder: `/airbnb/user_avatar/${userAvatar.id}` }
-          );
-          newAv.url = result.secure_url;
-          newAv.picture_id = result.public_id;
-          await User.findByIdAndUpdate(req.params.id, {
-            "account.avatar": newAv,
-          });
-          const userUpd = await User.findById(req.params.id);
-          res.status(200).json({
-            account: userUpd.account,
-            email: userUpd.email,
-            id: userUpd.id,
-            rooms: userUpd.rooms,
-          });
-        } else {
-          const newAv = {};
-          const result = await cloudinary.uploader.upload(
-            req.files.picture.path,
+      if (req.files.photo) {
+        const user = req.user;
+
+        if (user.account.photo === null) {
+          await cloudinary.uploader.upload(
+            req.files.photo.path,
             {
-              public_id: userAvatar.account.avatar.picture_id,
-              folder: `/airbnb/user_avatar/${userAvatar.id}`,
+              folder: "airbnb/user_picture",
+            },
+            async function (error, result) {
+              if (error) {
+                res.status(400).json({ error: "An error occurred" });
+              } else {
+                const userToUpdate = await User.findByIdAndUpdate(user.id, {
+                  "account.photo": [
+                    {
+                      url: result.secure_url,
+                      id: result.public_id,
+                      name: req.files.photo.name,
+                      type: req.files.photo.type,
+                    },
+                  ],
+                });
+                await userToUpdate.save();
+
+                const userUpdated = await User.findById(userToUpdate.id);
+                res.json({
+                  id: userUpdated.id,
+                  email: userUpdated.email,
+                  username: userUpdated.account.username,
+                  name: userUpdated.account.name,
+                  description: userUpdated.account.description,
+                  photo: userUpdated.account.photo,
+                  rooms: userUpdated.rooms,
+                });
+              }
             }
           );
-          newAv.url = result.secure_url;
-          newAv.picture_id = result.public_id;
-          await User.findByIdAndUpdate(req.params.id, {
-            "account.avatar": newAv,
-          });
-          const userUpd = await User.findById(req.params.id);
-          res.status(200).json({
-            account: userUpd.account,
-            email: userUpd.email,
-            id: userUpd.id,
-            rooms: userUpd.rooms,
-          });
+          // If there is already an avatar :
+        } else {
+          await cloudinary.uploader.destroy(user.account.photo[0].id);
+          await cloudinary.uploader.upload(
+            req.files.photo.path,
+            {
+              folder: "airbnb/user_picture",
+            },
+            async function (error, result) {
+              if (error) {
+                res.status(400).json({ error: "An error occurred" });
+              } else {
+                const userToUpdate = await User.findByIdAndUpdate(user.id, {
+                  "account.photo": [
+                    {
+                      url: result.secure_url,
+                      id: result.public_id,
+                      name: req.files.photo.name,
+                      type: req.files.photo.type,
+                    },
+                  ],
+                });
+                await userToUpdate.save();
+
+                const userUpdated = await User.findById(user.id);
+                res.json({
+                  id: userUpdated._id,
+                  email: userUpdated.email,
+                  username: userUpdated.account.username,
+                  name: userUpdated.account.name,
+                  description: userUpdated.account.description,
+                  photo: userUpdated.account.photo,
+                  rooms: userUpdated.rooms,
+                });
+              }
+            }
+          );
         }
       } else {
-        res.status(401).json({ error: "User wasn't found" });
+        res.status(400).json({ error: "Picture wasn't chosen" });
       }
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: error.message });
     }
-  } else {
-    res.status(400).json("The avatar picture wasn't sent");
-  }
+  };
 });
 
 // 4ème route pour effacer l'avatar de l'utilisateur :
