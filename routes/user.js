@@ -180,7 +180,7 @@ router.put("/user/delete_avatar/:id", isAuthenticated, async (req, res) => {
 
 // 5ème route pour rechercher l'utilisateur par id et retourner les informations non-sensibles :
 
-router.get("/users/:id", isAuthenticated, async (req, res) => {
+router.get("/user/:id", isAuthenticated, async (req, res) => {
   if (req.params.id) {
     try {
       const user = await User.findById(req.params.id);
@@ -191,6 +191,7 @@ router.get("/users/:id", isAuthenticated, async (req, res) => {
           photo: user.account.photo,
           account: user.account,
           rooms: user.rooms,
+          email: user.email,
         });
       } else {
         res.status(401).json("User wasn't found");
