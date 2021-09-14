@@ -270,6 +270,7 @@ router.get("/user/rooms/:id", async (req, res) => {
 
 router.put("/user/update", isAuthenticated, async (req, res) => {
   const { username, name, email, description } = req.fields;
+  console.log("REQ.FIELDS====>", req.fields);
   if (username || name || email || description) {
     try {
       const user = req.user;
