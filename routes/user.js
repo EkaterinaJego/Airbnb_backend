@@ -270,53 +270,49 @@ router.get("/user/rooms/:id", async (req, res) => {
 
 router.put("/user/update", isAuthenticated, async (req, res) => {
   const { username, email, description } = req.fields;
-  async (req, res) => {
-    try {
-      const userEmail = await User.findOne({ email: email });
-      const userUsername = await User.findOne({
-        "account.username": username,
-      });
 
-      // check if email or username are already in DB
-      if (userEmail && req.user.email !== email) {
-        return res.status(400).json({ error: "This email is already used." });
-      } else if (userUsername && req.user.account.username !== username) {
-        return res
-          .status(400)
-          .json({ error: "This username is already used." });
-      } else {
-        if (email || description || username) {
-          const userToUpdate = await User.findById(req.user.id);
+  try {
+    const userToCheck = await req.user;
+    const userEmail = await User.findOne({ email: email });
+    const userUsername = await User.findOne({
+      "account.username": username,
+    });
 
-          if (email !== userToUpdate.email) {
-            userToUpdate.email = email;
-          }
-          if (username !== userToUpdate.account.username) {
-            userToUpdate.account.username = username;
-          }
-          if (description !== userToUpdate.account.description) {
-            userToUpdate.account.description = description;
-          }
-
-          await userToUpdate.save();
-
-          res.json({
-            id: userToUpdate._id,
-            email: userToUpdate.email,
-            username: userToUpdate.account.username,
-            name: userToUpdate.account.name,
-            description: userToUpdate.account.description,
-            photo: userToUpdate.account.photo,
-            rooms: userToUpdate.rooms,
-          });
-        } else {
-          res.status(400).json({ error: "Missing information(s)" });
+    // check if email or username are already in DB
+    if (userEmail && userToCheck.email !== email) {
+      return res.status(400).json({ error: "This email is already used." });
+    } else if (userUsername && userToCheck.account.username !== username) {
+      return res.status(400).json({ error: "This username is already used." });
+    } else {
+      if (email || description || username) {
+        if (email !== userToCheck.email) {
+          userToCheck.email = email;
         }
+        if (username !== userToCheck.account.username) {
+          userToCheck.account.username = username;
+        }
+        if (description !== userToCheck.account.description) {
+          userToCheck.account.description = description;
+        }
+
+        await userToCheck.save();
+
+        res.json({
+          id: userToCheck._id,
+          email: userToCheck.email,
+          username: userToCheck.account.username,
+          name: userToCheck.account.name,
+          description: userToCheck.account.description,
+          photo: userToCheck.account.photo,
+          rooms: userToCheck.rooms,
+        });
+      } else {
+        res.status(400).json({ error: "Missing information" });
       }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
     }
-  };
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 module.exports = router;
