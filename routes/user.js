@@ -86,92 +86,88 @@ router.post("/user/login", async (req, res) => {
 // 3ème route pour uploader l'avatar de l'utilisateur :
 
 router.put("/user/upload_picture", isAuthenticated, async (req, res) => {
-  async (req, res) => {
-    try {
-      if (req.files.photo) {
-        const user = req.user;
+  try {
+    if (req.files.photo) {
+      const user = req.user;
 
-        // There is no avatar :
-        if (user.account.photo === null) {
-          await cloudinary.uploader.upload(
-            req.files.photo.path,
-            {
-              folder: "airbnb/user_picture",
-            },
-            async function (error, result) {
-              if (error) {
-                res.status(400).json({ error: "An error occurred" });
-              } else {
-                const userToUpdate = await User.findByIdAndUpdate(user.id, {
-                  "account.photo": [
-                    {
-                      url: result.secure_url,
-                      id: result.public_id,
-                      name: req.files.photo.name,
-                      type: req.files.photo.type,
-                    },
-                  ],
-                });
-                await userToUpdate.save();
+      if (user.account.photo === null) {
+        await cloudinary.uploader.upload(
+          req.files.photo.path,
+          {
+            folder: "airbnb/user",
+          },
+          async function (error, result) {
+            if (error) {
+              res.status(400).json({ error: "An error occurred" });
+            } else {
+              const userToUpdate = await User.findByIdAndUpdate(user.id, {
+                "account.photo": [
+                  {
+                    url: result.secure_url,
+                    id: result.public_id,
+                    name: req.files.photo.name,
+                    type: req.files.photo.type,
+                  },
+                ],
+              });
+              await userToUpdate.save();
 
-                const userUpdated = await User.findById(userToUpdate.id);
-                res.json({
-                  id: userUpdated.id,
-                  email: userUpdated.email,
-                  username: userUpdated.account.username,
-                  name: userUpdated.account.name,
-                  description: userUpdated.account.description,
-                  photo: userUpdated.account.photo,
-                  rooms: userUpdated.rooms,
-                });
-              }
+              const userUpdated = await User.findById(userToUpdate.id);
+              res.json({
+                id: userUpdated.id,
+                email: userUpdated.email,
+                username: userUpdated.account.username,
+                name: userUpdated.account.name,
+                description: userUpdated.account.description,
+                photo: userUpdated.account.photo,
+                rooms: userUpdated.rooms,
+              });
             }
-          );
-          // If there is already an avatar :
-        } else {
-          await cloudinary.uploader.destroy(user.account.photo[0].id);
-          await cloudinary.uploader.upload(
-            req.files.photo.path,
-            {
-              folder: "airbnb/user_picture",
-            },
-            async function (error, result) {
-              if (error) {
-                res.status(400).json({ error: "An error occurred" });
-              } else {
-                const userToUpdate = await User.findByIdAndUpdate(user.id, {
-                  "account.photo": [
-                    {
-                      url: result.secure_url,
-                      id: result.public_id,
-                      name: req.files.photo.name,
-                      type: req.files.photo.type,
-                    },
-                  ],
-                });
-                await userToUpdate.save();
-
-                const userUpdated = await User.findById(user.id);
-                res.json({
-                  id: userUpdated._id,
-                  email: userUpdated.email,
-                  username: userUpdated.account.username,
-                  name: userUpdated.account.name,
-                  description: userUpdated.account.description,
-                  photo: userUpdated.account.photo,
-                  rooms: userUpdated.rooms,
-                });
-              }
-            }
-          );
-        }
+          }
+        );
       } else {
-        res.status(400).json({ error: "Picture wasn't chosen" });
+        await cloudinary.uploader.destroy(user.account.photo[0].id);
+        await cloudinary.uploader.upload(
+          req.files.photo.path,
+          {
+            folder: "airbnb/users",
+          },
+          async function (error, result) {
+            if (error) {
+              res.status(400).json({ error: "An error occurred" });
+            } else {
+              const userToUpdate = await User.findByIdAndUpdate(user._id, {
+                "account.photo": [
+                  {
+                    url: result.secure_url,
+                    id: result.public_id,
+                    name: req.files.photo.name,
+                    type: req.files.photo.type,
+                  },
+                ],
+              });
+              await userToUpdate.save();
+
+              const userUpdated = await User.findById(user._id);
+              res.json({
+                id: userUpdated._id,
+                email: userUpdated.email,
+                username: userUpdated.account.username,
+                name: userUpdated.account.name,
+                description: userUpdated.account.description,
+                photo: userUpdated.account.photo,
+                rooms: userUpdated.rooms,
+              });
+            }
+          }
+        );
       }
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+    } else {
+      res.status(400).json({ error: "Missing picture" });
     }
-  };
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 // 4ème route pour effacer l'avatar de l'utilisateur :
@@ -266,7 +262,7 @@ router.get("/user/rooms/:id", async (req, res) => {
   }
 });
 
-// 7ème route pour modifier l'utilisateur (sauf avatar) : A TESTER !!!
+// 7ème route pour modifier l'utilisateur (sauf avatar)
 
 router.put("/user/update", isAuthenticated, async (req, res) => {
   const { username, email, description } = req.fields;
