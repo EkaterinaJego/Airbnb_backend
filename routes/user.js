@@ -85,42 +85,88 @@ router.post("/user/login", async (req, res) => {
 
 // 3ème route pour uploader l'avatar de l'utilisateur :
 
-router.put("/user/upload-picture/:id", isAuthenticated, async (req, res) => {
-  if (req.params.id) {
-    console.log(req.params.id);
-    try {
-      const user = await User.findById(req.params.id);
-      if (user) {
-        if (String(req.user._id) === String(user._id)) {
-          if (req.files.picture) {
-            const picture = await cloudinary.uploader.upload(
-              req.files.picture.path,
-              {
-                folder: `/airbnb/users/`,
-                public_id: user._id,
-              }
-            );
-            user.account.avatar = picture;
-            await user.save();
-            res
-              .status(200)
-              .json(
-                await User.findById(req.params.id).select("account email token")
-              );
-          } else {
-            res.status(400).json({ message: "Missing parameters" });
+router.put("/user/upload_picture", isAuthenticated, async (req, res) => {
+  try {
+    if (req.files.photo) {
+      const user = req.user;
+
+      if (user.account.photo === null) {
+        await cloudinary.uploader.upload(
+          req.files.photo.path,
+          {
+            folder: "airbnb/users",
+          },
+          async function (error, result) {
+            if (error) {
+              res.status(400).json({ error: "An error occurred" });
+            } else {
+              const userToUpdate = await User.findByIdAndUpdate(user._id, {
+                "account.photo": [
+                  {
+                    url: req.files.photo.url,
+                    id: result.public_id,
+                    name: req.files.photo.name,
+                    type: req.files.photo.type,
+                  },
+                ],
+              });
+              await userToUpdate.save();
+
+              const userUpdated = await User.findById(userToUpdate._id);
+              res.json({
+                id: userUpdated._id,
+                email: userUpdated.email,
+                username: userUpdated.account.username,
+                name: userUpdated.account.name,
+                description: userUpdated.account.description,
+                photo: userUpdated.account.photo,
+                rooms: userUpdated.rooms,
+              });
+            }
           }
-        } else {
-          res.status(401).json({ message: "Unauthorized" });
-        }
+        );
       } else {
-        res.status(400).json({ message: "User not found" });
+        await cloudinary.uploader.destroy(user.account.photo[0].id);
+        await cloudinary.uploader.upload(
+          req.files.photo.path,
+          {
+            folder: "airbnb/users",
+          },
+          async function (error, result) {
+            if (error) {
+              res.status(400).json({ error: "An error occurred" });
+            } else {
+              const userToUpdate = await User.findByIdAndUpdate(user._id, {
+                "account.photo": [
+                  {
+                    url: result.secure_url,
+                    id: result.public_id,
+                    name: req.files.photo.name,
+                    type: req.files.photo.type,
+                  },
+                ],
+              });
+              await userToUpdate.save();
+
+              const userUpdated = await User.findById(user._id);
+              res.json({
+                id: userUpdated._id,
+                email: userUpdated.email,
+                username: userUpdated.account.username,
+                name: userUpdated.account.name,
+                description: userUpdated.account.description,
+                photo: userUpdated.account.photo,
+                rooms: userUpdated.rooms,
+              });
+            }
+          }
+        );
       }
-    } catch (error) {
-      res.status(400).json({ message: error.message });
+    } else {
+      res.status(400).json({ error: "Missing picture" });
     }
-  } else {
-    res.status(400).json({ message: "Missing ID parameter" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
